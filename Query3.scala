@@ -16,30 +16,9 @@ object Query3 {
 
     var df = spark.read.option("Header", "true").csv("Delitti-italia.csv")
 
-    def filterByList(): DataFrame = {
-      val l= Seq("Sud","Nord","Centro","Nord-ovest","Nord-est","Isole","Italia","Abruzzo", "Basilicata", "Calabria",
-        "Campania", "Emilia-Romagna", "Friuli-Venezia Giulia", "Lazio", "Liguria", "Lombardia", "Marche",
-        "Molise", "Piemonte", "Puglia", "Sardegna", "Sicilia", "Toscana", "Trentino Alto Adige / Südtirol", "Umbria",
-        "Valle d'Aosta", "Veneto")
-      df.filter(!(df("Territorio").isin(l:_*)))
-    }
-
-    def filterByAnno(t:String): DataFrame = {
-      df.filter(df("TIME") === t).toDF()
-    }
-
     def filterByDelitto(t:String): DataFrame = {
-      df.filter(lower(df("Tipo di delitto")).contains(t.toLowerCase.trim))
-        //.filter(!(df("Tipo di delitto")==="totale"))
-        .toDF()
+      df.filter(lower(df("Tipo di delitto")).contains(t.toLowerCase.trim)).toDF()
     }
-
-    def filterByDelittoEsatto(t:String): DataFrame = {
-      df.filter(df("Tipo di delitto") === t).toDF()
-        //.filter(!(df("Tipo di delitto")==="totale"))
-        .toDF()
-    }
-
 
     def intersezione(d: String,a:String): Unit ={
       val l= Seq("Sud","Nord","Centro","Nord-ovest","Nord-est","Isole","Italia","Abruzzo", "Basilicata", "Calabria",
@@ -50,6 +29,7 @@ object Query3 {
       df = df.filter(!(df("Territorio").isin(l:_*)))
         .filter(df("TIME") === a)
         .filter(df("Tipo di delitto") === d)
+        //.intersect(filterByDelitto(d))
         .toDF()
         .select(df("Territorio"), df("Tipo di delitto"), df("TIME"), df("Value"))
         .withColumn("Value", col("Value").cast(IntegerType))
@@ -60,7 +40,7 @@ object Query3 {
       df.write.format("mongo").mode("overwrite").save()
     }
 
-    spark.time(intersezione("omicidi colposi", "2020"))
+    spark.time(intersezione("omicidi colposi", "2018"))
 
     spark.stop()
   }

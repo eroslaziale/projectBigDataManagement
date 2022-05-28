@@ -30,8 +30,7 @@ object Query2 {
       df.write.format("mongo").mode("overwrite").save()
     }
 
-    //intersezione("Bari", "2019")
-    spark.time(intersezione("Cosenza", "2020"))
+    spark.time(intersezione("Lecce", "2017"))
 
     spark.stop()
   }
